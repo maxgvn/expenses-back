@@ -75,6 +75,12 @@ app.get("/:code", async (req, res) => {
   }
 });
 
+// res.status(400).send('Bad Request');
+
+app.all("*", (req, res) => {
+  res.status(404).send("Page introuvable");
+});
+
 app.get("/api/links", async (req, res) => {
   const arrayLinks = await shortURL.find();
   console.log(arrayLinks, "check");
