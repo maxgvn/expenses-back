@@ -24,67 +24,85 @@ db.once("open", function() {
   console.log("connection active");
 });
 
-// CREATE FIVE CHAR HASH //
+const User = mongoose.model("User", {
+  name: String,
+  expensestotal: Number,
+  isDone: Boolean
+});
 
-app.post("/api/shorten", async (req, res, next) => {
-  const originalUrl = req.body.originalUrl;
-  const shortBaseUrl = "https://short-url-max-gavanon.herokuapp.com";
-  console.log(originalUrl, "original");
-  if (validUrl.isUri(originalUrl)) {
-  } else {
-    return res.status(401).json("Invalid Base Url");
-  }
+const Expense = mongoose.model("Expense", {
+  name: String,
+  isDone: Boolean
+});
 
-  const urlCode = Math.random()
-    .toString(36)
-    .slice(2, 7);
-
-  const updatedAt = new Date();
-
-  if (validUrl.isUri(originalUrl)) {
-    try {
-      const item = await shortURL.findOne({ originalUrl: originalUrl });
-      if (item) {
-        res.status(200).json(item);
-      } else {
-        shortUrl = shortBaseUrl + "/" + urlCode;
-        const item = new shortURL({
-          originalUrl,
-          shortUrl,
-          urlCode,
-          updatedAt
-        });
-        await item.save();
-        res.status(200).json(item);
-      }
-    } catch (err) {
-      res.status(401).json("Invalid Url");
-    }
-  } else {
-    return res.status(401).json("Invalid Url");
+app.get("/users", async (req, res) => {
+  try {
+    const Users = await User.find();
+    res.json(Users);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 
-app.get("/:code", async (req, res) => {
-  const urlCode = req.params.code;
-  const item = await shortURL.findOne({ urlCode: urlCode });
-  if (item) {
-    return res.redirect(item.originalUrl);
-  } else {
-    return res.redirect(errorUrl);
+app.post("/usercreate", async (req, res) => {
+  try {
+    const newUser = new User({
+      name: req.body.name,
+      expensestotal: 0,
+      isDone: false
+    });
+
+    await newUser.save();
+    res.json(newUser);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 
-// res.status(400).send('Bad Request');
+// app.post("/update", async (req, res) => {
+//   try {
+//     // 1) Récupérer l'objet à modifier depuis la base mongodb
+//     const task = await Task.findById(req.query.id);
+//     if (task) {
+//       // 2) Modifier l'objet
+//       if (req.body.name !== undefined) {
+//         task.name = req.body.name;
+//       }
+//       if (req.body.isDone !== undefined) {
+//         task.isDone = req.body.isDone;
+//       }
+
+//       // 3) Sauvegarder l'objet modifié
+//       await task.save();
+
+//       res.json(task);
+//     } else {
+//       res.status(404).json({ message: "Task not found" });
+//     }
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// });
+
+// app.post("/delete", async (req, res) => {
+//   try {
+//     // 1) Récupérer l'objet à modifier depuis la base mongodb
+//     const task = await Task.findById(req.query.id);
+//     if (task) {
+//       // 3) Supprimer l'objet modifié
+//       await task.remove();
+
+//       res.json(task);
+//     } else {
+//       res.status(404).json({ message: "Task not found" });
+//     }
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// });
 
 app.all("*", (req, res) => {
   res.status(404).send("Page introuvable");
-});
-
-app.get("/api/links", async (req, res) => {
-  const arrayLinks = await shortURL.find();
-  console.log(arrayLinks, "check");
-  return res.json(arrayLinks);
 });
 
 app.listen(process.env.PORT, () => {
