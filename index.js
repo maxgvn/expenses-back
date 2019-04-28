@@ -26,10 +26,7 @@ db.once("open", function() {
 
 const User = mongoose.model("User", {
   name: { type: String, minlength: 1, maxlength: 20, required: true },
-  expensestotal: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Expense"
-  }
+  expensestotal: Number
 });
 
 const Expense = mongoose.model("Expense", {
